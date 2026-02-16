@@ -33,7 +33,7 @@ fi
 
 # 4. Run onboarding
 echo "[4/5] Running OpenClaw onboarding..."
-ssh "${SSH_USER}@${DROPLET_IP}" "openclaw onboard --non-interactive --accept-risk" || true
+ssh "${SSH_USER}@${DROPLET_IP}" "export PATH=\"/home/openclaw/.npm-global/bin:\$PATH\" && openclaw onboard --non-interactive --accept-risk" || true
 
 # 5. WhatsApp setup (interactive - needs QR scan)
 echo "[5/5] WhatsApp setup (interactive)..."

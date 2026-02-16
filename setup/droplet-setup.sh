@@ -63,6 +63,9 @@ ufw --force enable
 echo "[7/7] Installing OpenClaw..."
 su - openclaw -c 'curl -fsSL https://openclaw.ai/install.sh | bash'
 
+# Fix PATH for npm global bin (OpenClaw installs via npm)
+su - openclaw -c 'grep -q npm-global ~/.bashrc || echo "export PATH=\"/home/openclaw/.npm-global/bin:\$PATH\"" >> ~/.bashrc'
+
 # Enable systemd lingering so services persist after logout
 loginctl enable-linger openclaw
 

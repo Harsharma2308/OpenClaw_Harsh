@@ -1,21 +1,22 @@
-// OpenClaw Configuration
+// OpenClaw Configuration (v2026.2.x format)
 // Deploy to: ~/.openclaw/openclaw.json on VPS
 // API key goes in ~/.openclaw/.env (not here!)
 {
   // Gateway - loopback ONLY for security
   gateway: {
     bind: "loopback",
-    port: 18789
+    port: 18789,
+    mode: "local"
   },
 
-  // LLM Provider
-  agent: {
-    model: "anthropic/claude-opus-4-6"
-  },
-
-  // Agent defaults
+  // Agent defaults (migrated from legacy agent.* format)
   agents: {
     defaults: {
+      // LLM model
+      model: {
+        primary: "anthropic/claude-opus-4-6"
+      },
+
       // Thinking level for reasoning
       thinkingDefault: "high",
 

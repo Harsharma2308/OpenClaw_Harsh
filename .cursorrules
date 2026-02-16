@@ -34,13 +34,19 @@ OpenClaw_Harsh/
     └── settings.local.json
 ```
 
+## VPS Info
+- **Droplet IP:** 138.68.48.206
+- **Droplet Name:** openclaw-personal
+- **Region:** SFO2 (San Francisco)
+- **OpenClaw Version:** 2026.2.14
+
 ## Key Commands
-- **Deploy to VPS:** `./setup/deploy.sh <DROPLET_IP>`
-- **SSH into VPS:** `ssh openclaw@<DROPLET_IP>`
-- **Dashboard (via tunnel):** `ssh -L 18789:127.0.0.1:18789 openclaw@<DROPLET_IP>` then open http://localhost:18789
-- **Check status:** `ssh openclaw@<DROPLET_IP> 'openclaw gateway status'`
-- **View logs:** `ssh openclaw@<DROPLET_IP> 'journalctl --user-unit openclaw-gateway -f'`
-- **Backup:** `ssh openclaw@<DROPLET_IP> 'tar -czf ~/backup-$(date +%Y%m%d).tar.gz ~/.openclaw/'`
+- **Deploy to VPS:** `./setup/deploy.sh 138.68.48.206`
+- **SSH into VPS:** `ssh openclaw@138.68.48.206`
+- **Dashboard (via tunnel):** `ssh -L 18789:127.0.0.1:18789 openclaw@138.68.48.206` then open http://localhost:18789
+- **Check status:** `ssh openclaw@138.68.48.206 'openclaw gateway status'`
+- **View logs:** `ssh openclaw@138.68.48.206 'journalctl --user-unit openclaw-gateway -f'`
+- **Backup:** `ssh openclaw@138.68.48.206 'tar -czf ~/backup-$(date +%Y%m%d).tar.gz ~/.openclaw/'`
 
 ## VPS Details
 - **Provider:** DigitalOcean ($200 credit / 60-day trial, then $6/mo)
