@@ -1,0 +1,59 @@
+// OpenClaw Configuration
+// Deploy to: ~/.openclaw/openclaw.json on VPS
+// API key goes in ~/.openclaw/.env (not here!)
+{
+  // Gateway - loopback ONLY for security
+  gateway: {
+    bind: "loopback",
+    port: 18789
+  },
+
+  // LLM Provider
+  agent: {
+    model: "anthropic/claude-opus-4-6"
+  },
+
+  // Agent defaults
+  agents: {
+    defaults: {
+      // Thinking level for reasoning
+      thinkingDefault: "high",
+
+      // Heartbeat - proactive check-ins
+      heartbeat: {
+        every: "30m",
+        target: "last",
+        activeHours: {
+          start: "08:00",
+          end: "22:00",
+          timezone: "America/Los_Angeles"
+        }
+      },
+
+      // Sandbox for non-main sessions
+      sandbox: {
+        mode: "non-main",
+        scope: "agent",
+        docker: {
+          image: "openclaw-sandbox:bookworm-slim",
+          network: "none",
+          readOnlyRoot: true
+        }
+      }
+    }
+  },
+
+  // Messaging channels
+  channels: {
+    whatsapp: {
+      // "pairing" = must approve each new contact
+      dmPolicy: "pairing",
+      // Your phone number in E.164 format
+      allowFrom: ["+1YOURNUMBER"],
+      // Disable group chats initially
+      groupPolicy: "disabled",
+      sendReadReceipts: true,
+      textChunkLimit: 4000
+    }
+  }
+}

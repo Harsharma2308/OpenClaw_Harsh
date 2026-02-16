@@ -1,0 +1,92 @@
+# OpenClaw_Harsh - Personal AI Assistant
+
+Personal OpenClaw (formerly Clawd/Moltbot) deployment on DigitalOcean VPS with WhatsApp integration.
+Self-hosted AI personal assistant powered by Anthropic Claude, running on a $6/mo DigitalOcean droplet.
+
+## Owner
+- **Name:** Harsh Sharma
+- **Purpose:** Personal life assistant via WhatsApp
+- **Hosting:** DigitalOcean VPS (Ubuntu 24.04)
+- **LLM:** Personal Anthropic API key (Claude Opus 4.6)
+- **GitHub:** https://github.com/Harsharma2308/OpenClaw_Harsh
+
+## Tech Stack
+- **Runtime:** Node.js 22
+- **Agent:** OpenClaw (MIT licensed, github.com/openclaw/openclaw)
+- **LLM Provider:** Anthropic Claude API (personal key, pay-per-token)
+- **Messaging:** WhatsApp bridge (built-in, QR code pairing)
+- **Deployment:** Docker Compose on DigitalOcean droplet
+- **Security:** Loopback-only gateway, SSH tunnel for dashboard, UFW firewall
+
+## Project Structure
+```
+OpenClaw_Harsh/
+├── .cursorrules           # Project rules (this file)
+├── CLAUDE.md              # Symlink → .cursorrules
+├── .gitignore             # Exclude secrets, .env, credentials
+├── setup/
+│   ├── README.md          # Setup instructions & cost breakdown
+│   ├── droplet-setup.sh   # VPS bootstrap (user, node, swap, firewall)
+│   ├── openclaw-config.json5  # OpenClaw config template
+│   ├── soul.md            # Personality / SOUL.md for the assistant
+│   └── deploy.sh          # One-command deploy to VPS
+└── .claude/
+    └── settings.local.json
+```
+
+## Key Commands
+- **Deploy to VPS:** `./setup/deploy.sh <DROPLET_IP>`
+- **SSH into VPS:** `ssh openclaw@<DROPLET_IP>`
+- **Dashboard (via tunnel):** `ssh -L 18789:127.0.0.1:18789 openclaw@<DROPLET_IP>` then open http://localhost:18789
+- **Check status:** `ssh openclaw@<DROPLET_IP> 'openclaw gateway status'`
+- **View logs:** `ssh openclaw@<DROPLET_IP> 'journalctl --user-unit openclaw-gateway -f'`
+- **Backup:** `ssh openclaw@<DROPLET_IP> 'tar -czf ~/backup-$(date +%Y%m%d).tar.gz ~/.openclaw/'`
+
+## VPS Details
+- **Provider:** DigitalOcean ($200 credit / 60-day trial, then $6/mo)
+- **Spec:** 2 vCPU, 1GB RAM + 1GB swap, Ubuntu 24.04
+- **Region:** SFO3 or nearest
+- **Firewall:** SSH (22) only, gateway on loopback (127.0.0.1:18789)
+
+## Cost Breakdown
+- **VPS:** $6/mo (free for first 60 days with trial credit)
+- **Anthropic API:** ~$1-2/hr when actively chatting (pay-per-token)
+- **Heartbeat cost:** ~48 LLM turns/day at 30min intervals during active hours
+
+## Security Rules
+- NEVER commit API keys, .env files, or credentials to git
+- Gateway MUST bind to loopback only (never expose port 18789)
+- Access dashboard only via SSH tunnel
+- WhatsApp dmPolicy set to "pairing" (explicit approval required)
+- Docker sandbox enabled for non-main agent sessions
+- Run `openclaw doctor` regularly for security audit
+
+## Architecture
+```
+[WhatsApp on Phone] → [WhatsApp Bridge]
+                           ↓
+                    [OpenClaw Gateway]  ← SSH tunnel → [Dashboard UI]
+                           ↓
+                    [Agent Session]
+                           ↓
+                    [Anthropic Claude API]
+```
+- Gateway is the single long-running process (Node.js, systemd managed)
+- Agent loads SOUL.md + workspace context on each session
+- Heartbeat fires every 30min during active hours (08:00-22:00 PT)
+- WhatsApp bridge handles QR auth, message routing, media
+
+## Personality (SOUL.md)
+The assistant personality is defined in `setup/soul.md` and deployed to `~/.openclaw/workspace/SOUL.md` on the VPS.
+Edit locally, redeploy with `./setup/deploy.sh`.
+
+## iMessage (Future)
+Requires a Mac running BlueBubbles server. Skipped for initial setup.
+Can be added later with a Mac Mini or Mac-in-cloud service.
+
+## Important Notes
+- This is a PERSONAL project - no NVIDIA infrastructure, keys, or proxy
+- Anthropic API key is personal and paid out of pocket
+- Keep workspace files (SOUL.md, USER.md) private - they contain personal context
+- OpenClaw updates: `openclaw update --channel stable`
+- WhatsApp session may need re-linking periodically (check logs)
