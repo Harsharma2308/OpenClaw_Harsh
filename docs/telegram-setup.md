@@ -35,7 +35,7 @@ In `setup/openclaw-config.json5`, fill in your Telegram user ID in `allowFrom`:
 telegram: {
   botToken: "${TELEGRAM_BOT_TOKEN}",
   dmPolicy: "allowlist",
-  allowFrom: [123456789],  // your numeric Telegram user ID
+  allowFrom: [8092664267],  // your numeric Telegram user ID
   groupPolicy: "disabled"
 }
 ```
