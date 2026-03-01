@@ -55,6 +55,15 @@
       groupPolicy: "disabled",
       sendReadReceipts: true,
       textChunkLimit: 4000
+    },
+
+    telegram: {
+      // Bot token from @BotFather — set TELEGRAM_BOT_TOKEN in ~/.openclaw/.env
+      botToken: "${TELEGRAM_BOT_TOKEN}",
+      // Only accept messages from your Telegram user ID (find via @userinfobot)
+      dmPolicy: "allowlist",
+      allowFrom: [],  // TODO: add your Telegram numeric user ID
+      groupPolicy: "disabled"
     }
   }
 }
