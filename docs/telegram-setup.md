@@ -2,6 +2,8 @@
 
 This guide covers adding Telegram as a messaging channel to your OpenClaw personal assistant.
 
+> **Note:** All commands in this guide can be run directly on the VPS (`ssh openclaw@<DROPLET_IP>`) or from your local machine using the `ssh ... '<command>'` prefix shown in the examples.
+
 ## 1. Create a Telegram Bot
 
 1. Open Telegram and message `@BotFather`
@@ -19,11 +21,14 @@ You need to whitelist your own Telegram user ID so the bot only responds to you.
 
 The bot token must live in `~/.openclaw/.env` — **never** committed to git.
 
+From local machine:
 ```bash
-ssh openclaw@<DROPLET_IP>
-cat >> ~/.openclaw/.env <<'EOF'
-TELEGRAM_BOT_TOKEN=<your-bot-token-here>
-EOF
+ssh openclaw@<DROPLET_IP> "echo 'TELEGRAM_BOT_TOKEN=<your-bot-token>' >> ~/.openclaw/.env && chmod 600 ~/.openclaw/.env"
+```
+
+Or directly on the VPS:
+```bash
+echo 'TELEGRAM_BOT_TOKEN=<your-bot-token>' >> ~/.openclaw/.env
 chmod 600 ~/.openclaw/.env
 ```
 
@@ -40,27 +45,29 @@ telegram: {
 }
 ```
 
-Then redeploy the config:
+Then copy the config to the OpenClaw directory. If running **on the VPS**:
+```bash
+cp setup/openclaw-config.json5 ~/.openclaw/openclaw.json
+```
 
+If running **from local machine**:
 ```bash
 ./setup/deploy.sh <DROPLET_IP>
 ```
 
-## 5. Activate the Channel
+## 5. Restart the Gateway
 
+Telegram reads the bot token from `.env` automatically — no separate login step needed.
+
+On VPS or via SSH:
 ```bash
-ssh openclaw@<DROPLET_IP>
-openclaw channels login --channel telegram
-# No QR code needed — reads token from .env automatically
+systemctl --user restart openclaw-gateway
+# Confirm it's running:
+journalctl --user-unit openclaw-gateway --no-pager -n 10
+# Look for: [telegram] [default] starting provider (@your_bot_name)
 ```
 
-## 6. Restart the Gateway
-
-```bash
-ssh openclaw@<DROPLET_IP> 'systemctl --user restart openclaw-gateway'
-```
-
-## 7. Test It
+## 6. Test It
 
 Send a message to your bot on Telegram. You should get a response from the assistant.
 
