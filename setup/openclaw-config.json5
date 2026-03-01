@@ -62,7 +62,7 @@
       botToken: "${TELEGRAM_BOT_TOKEN}",
       // Only accept messages from your Telegram user ID (find via @userinfobot)
       dmPolicy: "allowlist",
-      allowFrom: [8092664267]
+      allowFrom: [8092664267],
       groupPolicy: "disabled"
     }
   }
