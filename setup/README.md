@@ -65,13 +65,37 @@ ssh openclaw@<DROPLET_IP> 'tar -czf ~/backup-$(date +%Y%m%d).tar.gz ~/.openclaw/
 scp openclaw@<DROPLET_IP>:~/backup-*.tar.gz ./
 ```
 
+## Model Routing (Cost Optimization)
+
+By default we use **Sonnet as the daily driver** with **Opus as fallback** for heavy reasoning tasks:
+
+```json5
+model: {
+  primary: "anthropic/claude-sonnet-4-5",    // ~1/5 the cost of Opus
+  fallbacks: ["anthropic/claude-opus-4-6"],   // auto-fallback or /model opus
+}
+```
+
+**Switch models in chat:**
+- `/model opus` — escalate to Opus for complex tasks
+- `/model sonnet` — back to Sonnet
+- `/model` — see available models
+
+**Heartbeat** runs on Sonnet to avoid burning Opus tokens on routine checks.
+
+**Other cost-saving options:**
+- **OpenRouter** (`OPENROUTER_API_KEY`) — single key for many providers, access to cheaper/free models
+- **Claude Max $200/mo plan** — flat rate via `claude-max-api-proxy` (wraps Claude Code CLI as OpenAI-compatible API). See [claude-max-api-proxy](https://github.com/atalovesyou/claude-max-api-proxy)
+- **Multiple auth profiles** — rotate between OAuth subscription + API key with auto-failover
+
 ## Cost Breakdown
 
 | Item | Cost |
 |------|------|
 | DigitalOcean VPS | $6/mo (free for 60 days with $200 credit) |
-| Anthropic API | ~$1-2/hr when actively chatting |
-| Heartbeat (48 turns/day) | ~$0.50-1/day estimate |
+| Anthropic API (Sonnet primary) | ~$0.20-0.50/hr when actively chatting |
+| Anthropic API (Opus when escalated) | ~$1-2/hr when actively chatting |
+| Heartbeat (48 turns/day, Sonnet) | ~$0.10-0.25/day estimate |
 
 ## Security Notes
 
