@@ -85,8 +85,41 @@ model: {
 
 **Other cost-saving options:**
 - **OpenRouter** (`OPENROUTER_API_KEY`) — single key for many providers, access to cheaper/free models
-- **Claude Max $200/mo plan** — flat rate via `claude-max-api-proxy` (wraps Claude Code CLI as OpenAI-compatible API). See [claude-max-api-proxy](https://github.com/atalovesyou/claude-max-api-proxy)
 - **Multiple auth profiles** — rotate between OAuth subscription + API key with auto-failover
+
+### When to Switch to Claude Max Plan ($200/mo)
+
+If your **monthly API costs approach $200**, switch to the **Claude Max subscription** and run Opus full-time:
+
+**Benefits:**
+- Flat $200/mo → unlimited Opus usage (soft throttle exists but generous)
+- No more model routing needed → just use `anthropic/claude-opus-4-6` everywhere
+- Simpler config, better quality on all tasks
+
+**Setup:**
+1. Subscribe to Claude Max at https://claude.ai/settings/billing
+2. Install proxy: `npm install -g claude-max-api-proxy`
+3. Authenticate: `claude setup-token`
+4. Run proxy: `claude-max-api` (runs at http://localhost:3456)
+5. Update config to point at proxy:
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: { primary: "openai/claude-opus-4" }
+    }
+  },
+  env: {
+    OPENAI_API_KEY: "not-needed",
+    OPENAI_BASE_URL: "http://localhost:3456/v1"
+  }
+}
+```
+
+**Note:** The proxy wraps Claude Code CLI, so ensure it's authenticated on the VPS. See [claude-max-api-proxy](https://github.com/atalovesyou/claude-max-api-proxy) for details.
+
+**Cost threshold:** If spending >$7/day on average, Max plan pays for itself.
 
 ## Cost Breakdown
 
