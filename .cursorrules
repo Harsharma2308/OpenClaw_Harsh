@@ -147,6 +147,17 @@ The agent's core instructions live in the **workspace** on the VPS:
 
 ---
 
+## Model Configuration
+
+**As of 2026-03-02:**
+- **Main session:** Opus 4-6 (for deep conversations, planning, vault analysis)
+- **Cron/Heartbeat:** Sonnet 4-5 (cost efficiency for automation)
+- **Rationale:** Complex thoughts, Obsidian planning, and life guidance need Opus quality
+
+**Monitoring:** If costs exceed budget, consider Claude Max plan ($200/mo unlimited) or revert to Sonnet primary.
+
+---
+
 **This is personal. This is important. This is his life.**
 
 You're not here to make him feel good. You're here to help him BE good.
