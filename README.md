@@ -9,7 +9,7 @@ Brutally honest accountability partner for life management, not a cheerleader.
 ## Quick Stats
 
 - **Host:** Ubuntu 24.04 VPS (DigitalOcean)
-- **Model:** Sonnet (primary) → Opus (fallback)
+- **Model:** Opus 4-6 (primary) → Sonnet 4-5 (fallback)
 - **Channels:** Telegram, WhatsApp
 - **Integrations:** Obsidian Vault, Google Calendar, Gmail, Whoop, FatSecret
 - **Philosophy:** ACTION > PERFECTION
@@ -135,17 +135,37 @@ See [`setup/README.md`](setup/README.md) for complete deployment instructions.
 
 ## Cost Optimization
 
-**Current Setup:**
-- **Primary:** Sonnet (~$0.20-0.50/hr active chatting)
-- **Fallback:** Opus (~$1-2/hr when escalated)
-- **Heartbeat:** Sonnet (~$0.10-0.25/day)
+**Current Setup (as of 2026-03-02):**
+- **Primary:** Opus 4-6 (~$1-3/day for deep conversations)
+- **Fallback:** Sonnet 4-5 (if Opus fails)
+- **Heartbeat/Cron:** Sonnet (~$0.20-0.50/day for automation)
 - **VPS:** $6/mo (free for 60 days with DigitalOcean credit)
+- **Estimated Total:** ~$45-105/month
 
-**Upgrade Path:**
-If monthly costs approach **$200**, switch to Claude Max plan:
-- Flat $200/mo → unlimited Opus
-- Via `claude-max-api-proxy`
-- Threshold: >$7/day average
+**Rationale for Opus Primary:**
+- Deep reasoning needed for: life/career planning, Obsidian vault analysis, relationship guidance, complex decision-making
+- Sonnet was never actually being used for these tasks (always on by default, manual switch forgotten)
+- Opus quality matters for important conversations
+- Automation (heartbeats, cron jobs) stays on Sonnet for cost efficiency
+
+**Monitoring & Decision Points:**
+
+| If monthly cost... | Then... |
+|--------------------|---------|
+| < $105/mo | Continue current setup (optimal quality/cost balance) |
+| $105-200/mo | Evaluate if quality justifies cost vs reverting to Sonnet primary |
+| > $200/mo | Switch to Claude Max plan (unlimited Opus for flat $200/mo) |
+
+**Claude Max Upgrade Path:**
+- Via `claude-max-api-proxy` (unlimited Opus usage)
+- Eliminates model routing complexity
+- Break-even point: ~$7/day average usage
+
+**Fallback Plan:**
+If costs exceed budget and Claude Max not justified:
+- Revert to Sonnet primary (config.patch, 1 command)
+- Use `/model opus` manually for deep planning sessions
+- Estimated savings: Back to ~$15-30/month
 
 See: [`setup/README.md#when-to-switch-to-claude-max-plan`](setup/README.md#when-to-switch-to-claude-max-plan)
 
