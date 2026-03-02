@@ -130,6 +130,37 @@ If your **monthly API costs approach $200**, switch to the **Claude Max subscrip
 | Anthropic API (Opus when escalated) | ~$1-2/hr when actively chatting |
 | Heartbeat (48 turns/day, Sonnet) | ~$0.10-0.25/day estimate |
 
+## Troubleshooting: VPS OOM During `openclaw update`
+
+The 1GB RAM droplet can OOM-kill npm during `openclaw update` or `npm install -g openclaw`. Symptoms: update hangs for 10+ min, exit code 137, or `ENOTEMPTY` errors on retry.
+
+**Root cause:** Stale Claude sessions from previous terminals accumulate in swap, leaving no room for npm's dependency resolution (~600MB peak).
+
+**Fix:**
+
+```bash
+# 1. Kill stale Claude/bash processes from old sessions
+ps aux | grep -E "claude|bash.*openclaw" | grep -v grep
+kill <stale_pids>
+
+# 2. Add a temporary second swap file
+sudo fallocate -l 1G /swapfile2
+sudo chmod 600 /swapfile2
+sudo mkswap /swapfile2
+sudo swapon /swapfile2
+
+# 3. Clear any partial install and retry
+rm -rf ~/.npm-global/lib/node_modules/openclaw
+NODE_OPTIONS="--max-old-space-size=256" npm install -g openclaw --no-fund --no-audit
+
+# 4. Remove the extra swap after install succeeds
+sudo swapoff /swapfile2 && sudo rm /swapfile2
+```
+
+**Prevention:** Before updating, check memory with `free -h`. If swap is >50% used, kill old sessions first.
+
+---
+
 ## Security Notes
 
 - Gateway binds to loopback ONLY (127.0.0.1)

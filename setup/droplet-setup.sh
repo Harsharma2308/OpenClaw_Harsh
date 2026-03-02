@@ -41,13 +41,17 @@ if ! command -v docker &>/dev/null; then
 fi
 
 # 5. Add swap (important for 1GB RAM droplets)
-echo "[5/7] Configuring 1GB swap..."
+# 2GB swap needed: npm install for openclaw peaks ~600MB, stale sessions eat swap fast
+echo "[5/7] Configuring 2GB swap..."
 if [ ! -f /swapfile ]; then
-    fallocate -l 1G /swapfile
+    fallocate -l 2G /swapfile
     chmod 600 /swapfile
     mkswap /swapfile
     swapon /swapfile
     echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    # Reduce swappiness so RAM is used first
+    echo 'vm.swappiness=10' >> /etc/sysctl.d/99-openclaw.conf
+    sysctl -p /etc/sysctl.d/99-openclaw.conf
 fi
 
 # 6. Configure firewall
