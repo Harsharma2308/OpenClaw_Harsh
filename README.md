@@ -36,19 +36,26 @@ BillieJoe is a personal AI assistant that:
 ```
 OpenClaw_Harsh/
 ├── README.md              # This file
+├── STRUCTURE.md           # 📋 Detailed repo organization guide
 ├── CLAUDE.md              # Agent instructions (references workspace/SOUL.md)
+├── workspace/             # 🔗 Symlinks to ~/.openclaw/workspace/
+│   ├── AGENTS.md          # Core instructions
+│   ├── SOUL.md            # Persona and philosophy
+│   ├── MEMORY.md          # Long-term memory
+│   ├── SYSTEMS.md         # Architecture & design
+│   ├── SETUP.md           # Configuration guide
+│   ├── MIGRATION.md       # Migration instructions
+│   └── ...                # (All workspace files symlinked)
 ├── setup/                 # Setup scripts and configs
 │   ├── README.md          # Detailed setup guide
-│   ├── openclaw-config.json5  # OpenClaw configuration
-│   └── soul.md            # (Legacy - moved to workspace)
-└── docs/                  # Documentation
+│   └── openclaw-config.json5  # OpenClaw configuration
+└── docs/                  # Additional documentation
     └── telegram-setup.md  # Telegram bot setup
 ```
 
-**Agent workspace lives on VPS:**
-- Location: `~/.openclaw/workspace/`
-- Contains: `SOUL.md`, `AGENTS.md`, `TOOLS.md`, `HEARTBEAT.md`, `MEMORY.md`
-- Git-tracked separately for version control
+**Workspace files:** Actual files live at `~/.openclaw/workspace/` (where OpenClaw expects them). This repo contains **symlinks** for backup and visibility on GitHub.
+
+**See [`STRUCTURE.md`](STRUCTURE.md) for complete documentation of where everything lives and how changes propagate.**
 
 ---
 
