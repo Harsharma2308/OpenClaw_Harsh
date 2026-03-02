@@ -21,21 +21,36 @@ ssh "${SSH_USER}@${DROPLET_IP}" "mkdir -p ~/.openclaw/workspace"
 scp "${SCRIPT_DIR}/openclaw-config.json5" "${SSH_USER}@${DROPLET_IP}:~/.openclaw/openclaw.json"
 scp "${SCRIPT_DIR}/soul.md" "${SSH_USER}@${DROPLET_IP}:~/.openclaw/workspace/SOUL.md"
 
-# 3. Set API keys in .env
+# 3. Write secrets to .env.secrets (NOT .env — openclaw update wipes .env)
+#    Keys live in .env.secrets + a systemd drop-in injects them into the service.
+#    This survives openclaw updates automatically.
 if [ -n "$API_KEY" ] || [ -n "$TELEGRAM_TOKEN" ]; then
-    echo "[3/5] Writing ~/.openclaw/.env..."
-    ENV_CONTENT=""
-    [ -n "$API_KEY" ]        && ENV_CONTENT+="ANTHROPIC_API_KEY=${API_KEY}\n"
-    [ -n "$TELEGRAM_TOKEN" ] && ENV_CONTENT+="TELEGRAM_BOT_TOKEN=${TELEGRAM_TOKEN}\n"
-    ssh "${SSH_USER}@${DROPLET_IP}" "printf '${ENV_CONTENT}' > ~/.openclaw/.env && chmod 600 ~/.openclaw/.env"
+    echo "[3/5] Writing ~/.openclaw/.env.secrets and systemd drop-in..."
+    # Write secrets file
+    SECRETS=""
+    [ -n "$API_KEY" ]        && SECRETS+="ANTHROPIC_API_KEY=${API_KEY}\n"
+    [ -n "$TELEGRAM_TOKEN" ] && SECRETS+="TELEGRAM_BOT_TOKEN=${TELEGRAM_TOKEN}\n"
+    ssh "${SSH_USER}@${DROPLET_IP}" "printf '${SECRETS}' > ~/.openclaw/.env.secrets && chmod 600 ~/.openclaw/.env.secrets"
+    # Install systemd drop-in so service picks up the secrets file
+    ssh "${SSH_USER}@${DROPLET_IP}" "
+        mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d
+        cat > ~/.config/systemd/user/openclaw-gateway.service.d/secrets.conf <<'EOF'
+[Service]
+EnvironmentFile=%h/.openclaw/.env.secrets
+EOF
+        systemctl --user daemon-reload
+    "
 else
-    echo "[3/5] No keys provided. Set them manually:"
+    echo "[3/5] No keys provided. Set them manually (use .env.secrets, not .env):"
     echo "  ssh ${SSH_USER}@${DROPLET_IP}"
-    echo "  cat > ~/.openclaw/.env <<'EOF'"
+    echo "  cat > ~/.openclaw/.env.secrets <<'EOF'"
     echo "  ANTHROPIC_API_KEY=sk-ant-..."
     echo "  TELEGRAM_BOT_TOKEN=<token>"
     echo "  EOF"
-    echo "  chmod 600 ~/.openclaw/.env"
+    echo "  chmod 600 ~/.openclaw/.env.secrets"
+    echo "  mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d"
+    echo "  echo -e '[Service]\nEnvironmentFile=%h/.openclaw/.env.secrets' > ~/.config/systemd/user/openclaw-gateway.service.d/secrets.conf"
+    echo "  systemctl --user daemon-reload"
 fi
 
 # 4. Run onboarding

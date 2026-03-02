@@ -130,6 +130,35 @@ If your **monthly API costs approach $200**, switch to the **Claude Max subscrip
 | Anthropic API (Opus when escalated) | ~$1-2/hr when actively chatting |
 | Heartbeat (48 turns/day, Sonnet) | ~$0.10-0.25/day estimate |
 
+## After Updates: API Keys / Telegram Stops Working
+
+`openclaw update` regenerates `~/.openclaw/.env` from a template, wiping real keys back to `${PLACEHOLDER}`.
+
+**The fix (already applied on this VPS):** Keys live in `~/.openclaw/.env.secrets` + a systemd drop-in injects them into the gateway service. This file is never touched by openclaw.
+
+```
+~/.openclaw/.env.secrets                              ← real keys live here
+~/.config/systemd/user/openclaw-gateway.service.d/
+    secrets.conf                                      ← drop-in: EnvironmentFile= pointing to above
+```
+
+If you rebuild a fresh VPS, `deploy.sh` sets this up automatically when you pass the API keys as arguments.
+
+If things break after an update:
+```bash
+# Verify secrets file still has real values
+cat ~/.openclaw/.env.secrets
+
+# Reload and restart
+systemctl --user daemon-reload
+systemctl --user restart openclaw-gateway
+
+# Check it's working
+openclaw status
+```
+
+---
+
 ## Troubleshooting: VPS OOM During `openclaw update`
 
 The 1GB RAM droplet can OOM-kill npm during `openclaw update` or `npm install -g openclaw`. Symptoms: update hangs for 10+ min, exit code 137, or `ENOTEMPTY` errors on retry.
