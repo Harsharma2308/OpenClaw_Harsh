@@ -83,6 +83,7 @@ See [`setup/README.md`](setup/README.md) for complete deployment instructions.
 - Auto-pull: Every 15 min
 - Auto-backup: Daily at 10 PM PT
 - Contains: DaytoDay notes, Goals, Habits, Tasks
+- **Docs:** [Obsidian Integration](docs/obsidian-integration.md) | [Vault Structure](docs/obsidian-vault-structure.md) | [MCP Servers](docs/obsidian-helper-mcp.md)
 
 **Cron Jobs:**
 - Vault sync (every 15 min)
