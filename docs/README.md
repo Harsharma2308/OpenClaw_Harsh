@@ -12,6 +12,7 @@ Comprehensive documentation for BillieJoe OpenClaw setup.
 | [Obsidian Integration](obsidian-integration.md) | How BillieJoe uses Obsidian vault |
 | [Obsidian Vault Structure](obsidian-vault-structure.md) | Complete vault layout reference |
 | [Obsidian Helper MCP](obsidian-helper-mcp.md) | MCP servers for future integration |
+| [Whoop Integration](whoop-integration.md) | Whoop health data sync to Obsidian |
 
 ---
 
@@ -40,6 +41,12 @@ Comprehensive documentation for BillieJoe OpenClaw setup.
   - Google Calendar MCP (events)
   - Whoop MCP (health data)
   - FatSecret MCP (nutrition)
+- **[whoop-integration.md](whoop-integration.md)** - Whoop health data sync
+  - OAuth architecture (local CC + VPS)
+  - API endpoints and response formats
+  - Daily sync workflow
+  - Token management and refresh
+  - Troubleshooting guide
 
 ### Workspace Files (Symlinked)
 See [../workspace/](../workspace/) for active agent configuration files:
