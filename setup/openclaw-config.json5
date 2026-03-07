@@ -61,7 +61,7 @@
       // "pairing" = must approve each new contact
       dmPolicy: "pairing",
       // Your phone number in E.164 format
-      allowFrom: ["+1YOURNUMBER"],
+      allowFrom: ["+19174424069"],
       // Disable group chats initially
       groupPolicy: "disabled",
       sendReadReceipts: true,
