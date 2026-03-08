@@ -130,6 +130,25 @@ If your **monthly API costs approach $200**, switch to the **Claude Max subscrip
 | Anthropic API (Opus when escalated) | ~$1-2/hr when actively chatting |
 | Heartbeat (48 turns/day, Sonnet) | ~$0.10-0.25/day estimate |
 
+## claude-max-proxy: Garbled Messages (`[object Object]`)
+
+The `claude-max-api-proxy` package has a bug where it assumes `message.content` is always
+a string. OpenClaw sends content as an array of blocks (`[{"type":"text","text":"..."}]`),
+which the proxy serializes as `[object Object]` — so Claude receives garbage and responds with confusion.
+
+**Fix (already applied on this VPS):** Patched `openai-to-cli.js` to extract text from array content blocks.
+
+**⚠️ This patch lives in node_modules — it gets wiped if the package is updated.**
+After any `npm install -g claude-max-api-proxy`, re-run:
+
+```bash
+~/OpenClaw_Harsh/setup/patch-claude-max-proxy.sh
+```
+
+`deploy.sh` runs this automatically on fresh VPS setup.
+
+---
+
 ## After Updates: API Keys / Telegram Stops Working
 
 `openclaw update` regenerates `~/.openclaw/.env` from a template, wiping real keys back to `${PLACEHOLDER}`.
