@@ -53,12 +53,39 @@ else
     echo "  systemctl --user daemon-reload"
 fi
 
-# 4. Run onboarding
-echo "[4/5] Running OpenClaw onboarding..."
+# 4. Install claude-max-api-proxy + systemd service
+#    This routes all OpenClaw requests through your Claude subscription (no per-token cost)
+echo "[4/6] Installing claude-max-api-proxy..."
+ssh "${SSH_USER}@${DROPLET_IP}" "
+    export PATH=\"/home/openclaw/.npm-global/bin:\$PATH\"
+    NODE_OPTIONS='--max-old-space-size=256' npm install -g claude-max-api-proxy --no-fund --no-audit
+    mkdir -p ~/.config/systemd/user
+    cat > ~/.config/systemd/user/claude-max-proxy.service <<'EOF'
+[Unit]
+Description=Claude Max API Proxy
+After=network.target
+
+[Service]
+ExecStart=/home/openclaw/.npm-global/bin/claude-max-api 3456
+Restart=always
+RestartSec=5
+Environment=PATH=/home/openclaw/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+Environment=CLAUDECODE=
+
+[Install]
+WantedBy=default.target
+EOF
+    systemctl --user daemon-reload
+    systemctl --user enable claude-max-proxy
+    systemctl --user start claude-max-proxy
+"
+
+# 5. Run onboarding
+echo "[5/6] Running OpenClaw onboarding..."
 ssh "${SSH_USER}@${DROPLET_IP}" "export PATH=\"/home/openclaw/.npm-global/bin:\$PATH\" && openclaw onboard --non-interactive --accept-risk" || true
 
-# 5. Channel setup (interactive)
-echo "[5/5] Channel setup (interactive)..."
+# 6. Channel setup (interactive)
+echo "[6/6] Channel setup (interactive)..."
 echo ""
 echo "SSH into the VPS to finish linking channels:"
 echo "  ssh ${SSH_USER}@${DROPLET_IP}"
