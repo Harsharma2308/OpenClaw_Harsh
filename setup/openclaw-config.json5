@@ -21,8 +21,8 @@
         api: "openai-completions",
         models: [
           {
-            id: "claude-sonnet-4-6",
-            name: "Claude Sonnet 4.6 (via subscription)",
+            id: "claude-sonnet-4-5",
+            name: "Claude Sonnet 4.5 (via subscription)",
             reasoning: false,
             input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
@@ -49,13 +49,13 @@
       // Primary: Claude subscription via local proxy (free, no daily limit)
       // Fallback: direct Anthropic API (costs money, use if proxy is down)
       model: {
-        primary: "claude-max/claude-sonnet-4-6",
+        primary: "claude-max/claude-sonnet-4-5",
         fallbacks: ["anthropic/claude-sonnet-4-5"]
       },
 
       // Model aliases (use /model opus to escalate in chat)
       models: {
-        "claude-max/claude-sonnet-4-6": { alias: "sonnet" },
+        "claude-max/claude-sonnet-4-5": { alias: "sonnet" },
         "claude-max/claude-opus-4-6": { alias: "opus" },
         "anthropic/claude-sonnet-4-5": { alias: "sonnet-api" },
         "anthropic/claude-opus-4-6": {
@@ -69,7 +69,7 @@
       // Heartbeat - proactive check-ins via subscription (zero extra cost)
       heartbeat: {
         every: "30m",
-        model: "claude-max/claude-sonnet-4-6",
+        model: "claude-max/claude-sonnet-4-5",
         target: "last",
         activeHours: {
           start: "08:00",
