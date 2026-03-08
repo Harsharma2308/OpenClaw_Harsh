@@ -80,8 +80,7 @@ EOF
     systemctl --user start claude-max-proxy
 "
 # Apply patch to fix [object Object] bug in proxy (content array serialization)
-scp "${SCRIPT_DIR}/patch-claude-max-proxy.sh" "${SSH_USER}@${DROPLET_IP}:~/OpenClaw_Harsh/setup/patch-claude-max-proxy.sh"
-ssh "${SSH_USER}@${DROPLET_IP}" "chmod +x ~/OpenClaw_Harsh/setup/patch-claude-max-proxy.sh && ~/OpenClaw_Harsh/setup/patch-claude-max-proxy.sh"
+ssh "${SSH_USER}@${DROPLET_IP}" "bash ~/OpenClaw_Harsh/setup/patch-claude-max-proxy.sh"
 
 # 5. Run onboarding
 echo "[5/6] Running OpenClaw onboarding..."
