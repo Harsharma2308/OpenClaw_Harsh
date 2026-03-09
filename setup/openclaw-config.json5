@@ -50,7 +50,7 @@
       // Fallback: direct Anthropic API (costs money, use if proxy is down)
       model: {
         primary: "claude-max/claude-sonnet-4-5",
-        fallbacks: ["anthropic/claude-sonnet-4-5"]
+        fallbacks: []  // no fallback to Anthropic direct — avoids unexpected API charges
       },
 
       // Model aliases (use /model opus to escalate in chat)
