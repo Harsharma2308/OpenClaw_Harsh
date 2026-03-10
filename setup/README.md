@@ -7,12 +7,10 @@
    - Create a droplet: Ubuntu 24.04, $6/mo (Basic, Regular, 1GB RAM)
    - Add your SSH key during creation
 
-2. **Anthropic API key**
-   - Sign up at console.anthropic.com (personal account)
-   - Create an API key (starts with `sk-ant-api03-`)
-   - Add credit ($20 to start is fine)
+2. **Claude Max subscription** ($200/mo) — recommended for $0 API cost via proxy
+   - OR **Anthropic API key** from console.anthropic.com (pay-per-use)
 
-3. **WhatsApp** on your phone
+3. **Telegram** — primary messaging channel (WhatsApp blocked by Meta, see below)
 
 ## Quick Deploy
 
@@ -20,10 +18,17 @@
 # First time: bootstrap VPS + deploy config
 ./deploy.sh <DROPLET_IP> <ANTHROPIC_API_KEY>
 
-# Then SSH in to finish WhatsApp setup
+# SSH in to set up Telegram + Claude Max proxy
 ssh openclaw@<DROPLET_IP>
-openclaw channels login --channel whatsapp
-# Scan QR code with your phone
+
+# Set up Telegram bot (create via @BotFather first)
+# Add bot token to ~/.openclaw/.env.secrets
+
+# Set up Claude Max proxy (if using Max subscription)
+npm install -g claude-max-api-proxy
+claude login   # Opens URL — authorize on phone browser
+systemctl --user start claude-max-proxy
+systemctl --user enable claude-max-proxy
 
 # Start the gateway
 systemctl --user start openclaw-gateway
@@ -67,12 +72,57 @@ scp openclaw@<DROPLET_IP>:~/backup-*.tar.gz ./
 
 ## Model Routing (Cost Optimization)
 
-By default we use **Sonnet as the daily driver** with **Opus as fallback** for heavy reasoning tasks:
+### Claude Max Proxy (Current Setup — $0 API cost)
+
+Uses Claude Max subscription ($200/mo flat) via `claude-max-api-proxy`, which wraps Claude Code CLI as an OpenAI-compatible API.
 
 ```json5
+// In openclaw.json → models.providers
+"claude-max": {
+  "baseUrl": "http://localhost:3456/v1",
+  "apiKey": "not-needed",
+  "api": "openai-completions",
+  "models": [
+    { "id": "claude-sonnet-4-5", "cost": { "input": 0, "output": 0 } },
+    { "id": "claude-opus-4-6", "cost": { "input": 0, "output": 0 } }
+  ]
+}
+
+// Primary model
+model: { primary: "claude-max/claude-sonnet-4-5" }
+```
+
+**Setup:**
+1. Subscribe to Claude Max at https://claude.ai/settings/billing
+2. Install: `npm install -g claude-max-api-proxy`
+3. Install Claude Code CLI: `npm install -g @anthropic-ai/claude-code`
+4. Authenticate: `claude login` → opens URL, authorize on phone browser
+   - **DO NOT use `apiKeyHelper` in `~/.claude/settings.json`** — it overrides the subscription with an API key
+5. Create systemd service (see `claude-max-proxy.service`)
+6. Runs at `http://localhost:3456/v1/chat/completions`
+
+**E2BIG fix applied:**
+The stock proxy passes conversation history as a CLI argument, which hits Linux's ~128KB `execve()` arg limit on long sessions. We patched `subprocess/manager.js` to pipe the prompt via **stdin** instead — no size limit.
+
+**Patch location:** `/home/openclaw/.npm-global/lib/node_modules/claude-max-api-proxy/dist/subprocess/manager.js`
+**Warning:** `npm update -g claude-max-api-proxy` will overwrite this patch. Re-apply after updates.
+
+**Fallback for safety:**
+```json5
 model: {
-  primary: "anthropic/claude-sonnet-4-5",    // ~1/5 the cost of Opus
-  fallbacks: ["anthropic/claude-opus-4-6"],   // auto-fallback or /model opus
+  primary: "claude-max/claude-sonnet-4-5",  // $0 via Max proxy
+  fallbacks: ["haimaker/anthropic/claude-sonnet-4-5"]  // if proxy fails for any reason
+}
+```
+
+### Fallback: haimaker.ai (Pay-per-use)
+
+Cheaper alternative when Max proxy is down:
+```json5
+"haimaker": {
+  "baseUrl": "https://api.haimaker.ai/v1",
+  "apiKey": "<key>",
+  "api": "openai-completions"
 }
 ```
 
@@ -81,54 +131,15 @@ model: {
 - `/model sonnet` — back to Sonnet
 - `/model` — see available models
 
-**Heartbeat** runs on Sonnet to avoid burning Opus tokens on routine checks.
-
-**Other cost-saving options:**
-- **OpenRouter** (`OPENROUTER_API_KEY`) — single key for many providers, access to cheaper/free models
-- **Multiple auth profiles** — rotate between OAuth subscription + API key with auto-failover
-
-### When to Switch to Claude Max Plan ($200/mo)
-
-If your **monthly API costs approach $200**, switch to the **Claude Max subscription** and run Opus full-time:
-
-**Benefits:**
-- Flat $200/mo → unlimited Opus usage (soft throttle exists but generous)
-- No more model routing needed → just use `anthropic/claude-opus-4-6` everywhere
-- Simpler config, better quality on all tasks
-
-**Setup:**
-1. Subscribe to Claude Max at https://claude.ai/settings/billing
-2. Install proxy: `npm install -g claude-max-api-proxy`
-3. Authenticate: `claude setup-token`
-4. Run proxy: `claude-max-api` (runs at http://localhost:3456)
-5. Update config to point at proxy:
-
-```json5
-{
-  agents: {
-    defaults: {
-      model: { primary: "openai/claude-opus-4" }
-    }
-  },
-  env: {
-    OPENAI_API_KEY: "not-needed",
-    OPENAI_BASE_URL: "http://localhost:3456/v1"
-  }
-}
-```
-
-**Note:** The proxy wraps Claude Code CLI, so ensure it's authenticated on the VPS. See [claude-max-api-proxy](https://github.com/atalovesyou/claude-max-api-proxy) for details.
-
-**Cost threshold:** If spending >$7/day on average, Max plan pays for itself.
-
 ## Cost Breakdown
 
 | Item | Cost |
 |------|------|
 | DigitalOcean VPS | $6/mo (free for 60 days with $200 credit) |
-| Anthropic API (Sonnet primary) | ~$0.20-0.50/hr when actively chatting |
-| Anthropic API (Opus when escalated) | ~$1-2/hr when actively chatting |
-| Heartbeat (48 turns/day, Sonnet) | ~$0.10-0.25/day estimate |
+| Claude Max subscription | $200/mo flat (unlimited Sonnet/Opus) |
+| **Total with Max** | **$206/mo ($0 API cost)** |
+| Anthropic API (if no Max) | ~$0.20-2/hr depending on model |
+| haimaker.ai (fallback) | ~$0.25-2.85/M input tokens |
 
 ## claude-max-proxy: Garbled Messages (`[object Object]`)
 
@@ -209,11 +220,90 @@ sudo swapoff /swapfile2 && sudo rm /swapfile2
 
 ---
 
+## Troubleshooting: Gateway Crash Loop (SIGTERM on startup)
+
+**Symptom:** Gateway starts, runs for ~15 seconds, gets SIGTERM, restarts endlessly.
+
+**Cause 1 — Lingering not enabled:**
+Without `loginctl enable-linger openclaw`, systemd kills ALL user services when the last SSH session disconnects. With `Restart=always`, the service restarts but gets killed again on the next SSH disconnect.
+
+```bash
+# Check
+loginctl show-user openclaw | grep Linger
+# Fix
+sudo loginctl enable-linger openclaw
+```
+
+**Cause 2 — Service version mismatch:**
+After `openclaw update`, the binary version changes but the systemd service file still references the old version. OpenClaw detects the mismatch and triggers a restart loop.
+
+```bash
+# Fix: regenerate service file
+openclaw daemon install --force
+systemctl --user daemon-reload
+systemctl --user restart openclaw-gateway
+```
+
+## Troubleshooting: Claude Max Proxy E2BIG
+
+**Symptom:** Telegram bot receives messages but never replies. Proxy logs show `spawn E2BIG`.
+
+**Cause:** The stock `claude-max-api-proxy` passes conversation history as a CLI argument to `claude --print`. Linux's `execve()` syscall limits a single arg to ~128KB (`MAX_ARG_STRLEN`). This is NOT a memory issue — it happens on any server regardless of RAM.
+
+**Fix (already applied):** Patch `subprocess/manager.js` to pipe the prompt via stdin:
+```bash
+# In ~/.npm-global/lib/node_modules/claude-max-api-proxy/dist/subprocess/manager.js:
+# 1. Store prompt: this._stdinPrompt = prompt;
+# 2. Remove prompt from buildArgs() return array
+# 3. Write to stdin: if (this._stdinPrompt) { this.process.stdin?.write(this._stdinPrompt); }
+#    before this.process.stdin?.end();
+```
+
+**If it recurs after proxy update:**
+```bash
+# Quick fix: archive the bloated session and re-apply stdin patch
+cd ~/.openclaw/agents/main/sessions/
+ls -lhS *.jsonl | head -5
+mv <session-id>.jsonl <session-id>.jsonl.bak
+# Then re-apply the stdin patch above
+systemctl --user restart claude-max-proxy openclaw-gateway
+```
+
+## Troubleshooting: WhatsApp "Can't link devices"
+
+**Status: BROKEN (as of 2026-03).**
+
+WhatsApp has blocked the Baileys library (unofficial API) that OpenClaw uses. This is a known upstream issue (OpenClaw issues #20281, #4686). No workaround exists.
+
+**Use Telegram instead** — works reliably via BotFather polling.
+
+## Channels Setup
+
+### Telegram (Primary — working)
+1. Create bot via `@BotFather` on Telegram → get bot token
+2. Send `/start` to your bot to get your chat ID
+3. Add to `~/.openclaw/.env.secrets`:
+   ```
+   TELEGRAM_BOT_TOKEN=<token from BotFather>
+   ```
+4. Configure in `openclaw.json`:
+   ```json
+   "telegram": {
+     "enabled": true,
+     "dmPolicy": "allowlist",
+     "botToken": "${TELEGRAM_BOT_TOKEN}",
+     "allowFrom": [<your_telegram_id>]
+   }
+   ```
+
+### WhatsApp (Broken — blocked by Meta)
+See troubleshooting section above.
+
 ## Security Notes
 
 - Gateway binds to loopback ONLY (127.0.0.1)
 - Access dashboard only via SSH tunnel
-- API key stored in `~/.openclaw/.env` (chmod 600)
-- WhatsApp uses pairing mode (manual approval for each contact)
+- API keys stored in `~/.openclaw/.env.secrets` (chmod 600), injected via systemd drop-in
+- Telegram uses allowlist mode (only approved chat IDs)
 - Docker sandbox for non-main sessions
 - Run `openclaw doctor` regularly
